@@ -60,6 +60,47 @@ def build_user_prompt(context, question):
         f"Context: {context}\n\nQuestion: {question}\nJSON:"
     )
 
+def get_answer_one_shot(context, question):
+    # One-shot prompt with a single example
+    example_context = (
+        "Machine learning is a subset of artificial intelligence that focuses on building systems that learn from data."
+    )
+    example_question = "What is machine learning?"
+    example_answer = {
+        "answer": "Machine learning is a subset of AI focused on systems that learn from data.",
+        "confidence": 0.95
+    }
+    prompt = (
+        "Based on the following context, answer the question in JSON format with keys 'answer' and 'confidence' (confidence is a number between 0 and 1):\n\n"
+        f"Context: {example_context}\n"
+        f"Question: {example_question}\n"
+        f"JSON: {example_answer}\n\n"
+        f"Context: {context}\n"
+        f"Question: {question}\nJSON:"
+    )
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=80,
+        temperature=0.7,
+        top_p=0.9,
+        top_k=50,
+        stop=["\n\n", "\nJSON:"]
+    )
+    # Log the number of tokens used
+    if hasattr(response, 'usage'):
+        print(f"Tokens used: {response.usage['total_tokens']}")
+    else:
+        print("Token usage information not available.")
+    # Parse the JSON output
+    import json
+    try:
+        structured = json.loads(response.choices[0].text.strip())
+    except Exception as e:
+        print("Failed to parse JSON:", e)
+        structured = {"answer": response.choices[0].text.strip(), "confidence": None}
+    return structured
+
 # Example usage
 context = "Artificial intelligence is a field of computer science that focuses on creating systems capable of performing tasks that typically require human intelligence."
 question = "What does artificial intelligence focus on?"
@@ -75,3 +116,7 @@ print("Structured Answer:", result)
 # Example usage for embeddings
 sample_text = "Artificial intelligence enables machines to learn from data."
 embedding_vector = get_embedding(sample_text)
+
+# Example usage for one-shot prompting
+result_one_shot = get_answer_one_shot(context, question)
+print("One-Shot Structured Answer:", result_one_shot)
