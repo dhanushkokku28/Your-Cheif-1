@@ -45,10 +45,30 @@ def get_embedding(text, model="text-embedding-ada-002"):
     print(f"Embedding for '{text}':", embedding)
     return embedding
 
+# System prompt (for use with chat-based models or as documentation/context)
+SYSTEM_PROMPT = (
+    "You are an intelligent assistant. Your task is to answer user questions using only the information provided in the context. "
+    "Always respond in JSON format with the keys 'answer' and 'confidence' (confidence is a number between 0 and 1)."
+)
+
+def build_user_prompt(context, question):
+    """
+    Builds a user prompt using the RTFC framework.
+    """
+    return (
+        f"Based on the following context, answer the question in JSON format with keys 'answer' and 'confidence' (confidence is a number between 0 and 1):\n\n"
+        f"Context: {context}\n\nQuestion: {question}\nJSON:"
+    )
+
 # Example usage
 context = "Artificial intelligence is a field of computer science that focuses on creating systems capable of performing tasks that typically require human intelligence."
 question = "What does artificial intelligence focus on?"
 
+user_prompt = build_user_prompt(context, question)
+print("System Prompt:", SYSTEM_PROMPT)
+print("User Prompt:", user_prompt)
+
+# Example usage
 result = get_answer(context, question)
 print("Structured Answer:", result)
 
