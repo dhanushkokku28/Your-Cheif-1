@@ -16,7 +16,8 @@ def get_answer(context, question):
         max_tokens=80,
         temperature=0.7,
         top_p=0.9,
-        top_k=50
+        top_k=50,
+        stop=["\n\n", "\nJSON:"]  # Added stop sequences to control output
     )
     # Log the number of tokens used
     if hasattr(response, 'usage'):
