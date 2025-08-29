@@ -150,6 +150,55 @@ def get_answer_function_call(context, question):
     print("Function Call Structured Answer:", result)
     return result
 
+def get_answer_multi_shot(context, question):
+    # Multi-shot prompt with several examples
+    examples = [
+        {
+            "context": "Machine learning is a subset of artificial intelligence that focuses on building systems that learn from data.",
+            "question": "What is machine learning?",
+            "answer": {"answer": "Machine learning is a subset of AI focused on systems that learn from data.", "confidence": 0.95}
+        },
+        {
+            "context": "Deep learning is a branch of machine learning that uses neural networks with many layers.",
+            "question": "What is deep learning?",
+            "answer": {"answer": "Deep learning is a branch of machine learning using multi-layered neural networks.", "confidence": 0.92}
+        },
+        {
+            "context": "Natural language processing enables computers to understand and generate human language.",
+            "question": "What is natural language processing?",
+            "answer": {"answer": "Natural language processing allows computers to understand and generate human language.", "confidence": 0.93}
+        }
+    ]
+    prompt = "Based on the following context, answer the question in JSON format with keys 'answer' and 'confidence' (confidence is a number between 0 and 1):\n\n"
+    for ex in examples:
+        prompt += f"Context: {ex['context']}\n"
+        prompt += f"Question: {ex['question']}\n"
+        prompt += f"JSON: {ex['answer']}\n\n"
+    prompt += f"Context: {context}\nQuestion: {question}\nJSON:"
+
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=80,
+        temperature=0.7,
+        top_p=0.9,
+        top_k=50,
+        stop=["\n\n", "\nJSON:"]
+    )
+    # Log the number of tokens used
+    if hasattr(response, 'usage'):
+        print(f"Tokens used: {response.usage['total_tokens']}")
+    else:
+        print("Token usage information not available.")
+    # Parse the JSON output
+    import json
+    try:
+        structured = json.loads(response.choices[0].text.strip())
+    except Exception as e:
+        print("Failed to parse JSON:", e)
+        structured = {"answer": response.choices[0].text.strip(), "confidence": None}
+    return structured
+
 # Example usage
 context = "Artificial intelligence is a field of computer science that focuses on creating systems capable of performing tasks that typically require human intelligence."
 question = "What does artificial intelligence focus on?"
@@ -167,11 +216,14 @@ sample_text = "Artificial intelligence enables machines to learn from data."
 embedding_vector = get_embedding(sample_text)
 
 
-
 result_function_call = get_answer_function_call(context, question)# Example usage for function calling
 # Example usage for one-shot prompting
 result_one_shot = get_answer_one_shot(context, question)
 print("One-Shot Structured Answer:", result_one_shot)
+
+# Example usage for multi-shot prompting
+result_multi_shot = get_answer_multi_shot(context, question)
+print("Multi-Shot Structured Answer:", result_multi_shot)
 
 # Example usage for function calling
 result_function_call = get_answer_function_call(context, question)
