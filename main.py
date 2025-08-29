@@ -11,7 +11,8 @@ def get_answer(context, question):
         engine="text-davinci-003",
         prompt=prompt,
         max_tokens=60,
-        temperature=0.5
+        temperature=0.5,
+        top_p=0.9  # Added Top P for nucleus sampling
     )
     # Log the number of tokens used
     if hasattr(response, 'usage'):
