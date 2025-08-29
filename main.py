@@ -12,7 +12,8 @@ def get_answer(context, question):
         prompt=prompt,
         max_tokens=60,
         temperature=0.7,  # Updated temperature for more creative responses
-        top_p=0.9  # Added Top P for nucleus sampling
+        top_p=0.9,        # Added Top P for nucleus sampling
+        top_k=50          # Added Top K for sampling from top 50 tokens
     )
     # Log the number of tokens used
     if hasattr(response, 'usage'):
