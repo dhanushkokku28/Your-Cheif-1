@@ -13,6 +13,11 @@ def get_answer(context, question):
         max_tokens=60,
         temperature=0.5
     )
+    # Log the number of tokens used
+    if hasattr(response, 'usage'):
+        print(f"Tokens used: {response.usage['total_tokens']}")
+    else:
+        print("Token usage information not available.")
     return response.choices[0].text.strip()
 
 # Example usage
