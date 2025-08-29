@@ -33,9 +33,25 @@ def get_answer(context, question):
         structured = {"answer": response.choices[0].text.strip(), "confidence": None}
     return structured
 
+def get_embedding(text, model="text-embedding-ada-002"):
+    """
+    Generate an embedding vector for the given text using OpenAI's embedding API.
+    """
+    response = openai.Embedding.create(
+        input=text,
+        model=model
+    )
+    embedding = response['data'][0]['embedding']
+    print(f"Embedding for '{text}':", embedding)
+    return embedding
+
 # Example usage
 context = "Artificial intelligence is a field of computer science that focuses on creating systems capable of performing tasks that typically require human intelligence."
 question = "What does artificial intelligence focus on?"
 
 result = get_answer(context, question)
 print("Structured Answer:", result)
+
+# Example usage for embeddings
+sample_text = "Artificial intelligence enables machines to learn from data."
+embedding_vector = get_embedding(sample_text)
