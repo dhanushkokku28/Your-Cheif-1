@@ -101,6 +101,55 @@ def get_answer_one_shot(context, question):
         structured = {"answer": response.choices[0].text.strip(), "confidence": None}
     return structured
 
+def get_answer_function_call(context, question):
+    """
+    Uses OpenAI's function calling to return structured output for downstream function execution.
+    """
+    import json
+
+    functions = [
+        {
+            "name": "answer_question",
+            "description": "Answer a question based on provided context.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string",
+                        "description": "The answer to the user's question based on the context."
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "description": "Confidence score between 0 and 1."
+                    }
+                },
+                "required": ["answer", "confidence"]
+            }
+        }
+    ]
+
+    messages = [
+        {"role": "system", "content": "You are an intelligent assistant that answers questions using only the provided context."},
+        {"role": "user", "content": f"Context: {context}\nQuestion: {question}"}
+    ]
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-1106",
+        messages=messages,
+        functions=functions,
+        function_call={"name": "answer_question"}
+    )
+
+    # Extract function call arguments
+    try:
+        arguments = response.choices[0].message.function_call.arguments
+        result = json.loads(arguments)
+    except Exception as e:
+        print("Failed to parse function call arguments:", e)
+        result = {"answer": None, "confidence": None}
+    print("Function Call Structured Answer:", result)
+    return result
+
 # Example usage
 context = "Artificial intelligence is a field of computer science that focuses on creating systems capable of performing tasks that typically require human intelligence."
 question = "What does artificial intelligence focus on?"
@@ -117,6 +166,13 @@ print("Structured Answer:", result)
 sample_text = "Artificial intelligence enables machines to learn from data."
 embedding_vector = get_embedding(sample_text)
 
+
+
+result_function_call = get_answer_function_call(context, question)# Example usage for function calling
 # Example usage for one-shot prompting
 result_one_shot = get_answer_one_shot(context, question)
 print("One-Shot Structured Answer:", result_one_shot)
+
+# Example usage for function calling
+result_function_call = get_answer_function_call(context, question)
+
